@@ -9,6 +9,8 @@ import com.project.pr13.format.AsciiTablePrinter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -138,9 +140,40 @@ public class PR132Main {
      * @return Llista amb la informació dels cursos (ID, tutor, nombre d'alumnes).
      */
     public List<List<String>> llistarCursos() {
-        // *************** CODI PRÀCTICA **********************/
-        return null; // Substitueix pel teu
+        List<List<String>> llistaCursos = new ArrayList<>();
+        try {
+            // Cargar documento
+            Document doc = carregarDocumentXML(xmlFilePath);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+
+            // Obtener los elementos <curs>
+            NodeList nodeListCursos = (NodeList) xPath.evaluate("/cursos/curs", doc, XPathConstants.NODESET);
+
+            // Iterar sobre los cursos
+            for (int i = 0; i < nodeListCursos.getLength(); i++) {
+                Element cursElement = (Element) nodeListCursos.item(i);
+                String idCurs = cursElement.getAttribute("id");
+                String tutor = cursElement.getElementsByTagName("tutor").item(0).getTextContent();
+
+                // Obtener la cantidad de alumnos
+                NodeList alumnesList = cursElement.getElementsByTagName("alumne");
+                int totalAlumnes = alumnesList.getLength();
+
+                // Añadir información a la lista
+                List<String> cursInfo = new ArrayList<>();
+                cursInfo.add(idCurs);
+                cursInfo.add(tutor);
+                cursInfo.add(String.valueOf(totalAlumnes));
+                llistaCursos.add(cursInfo);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return llistaCursos;
     }
+
 
     /**
      * Imprimeix per consola una taula amb la informació dels cursos.
@@ -159,8 +192,35 @@ public class PR132Main {
      * @return Llista amb la informació dels mòduls (ID, títol).
      */
     public List<List<String>> mostrarModuls(String idCurs) {
-        // *************** CODI PRÀCTICA **********************/
-        return null; // Substitueix pel teu
+        List<List<String>> llistaCursos = new ArrayList<>();
+        try {
+            // Cargar documento
+            Document doc = carregarDocumentXML(xmlFilePath);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+
+            // Obtener los elementos del curso especifico
+            NodeList nodeListModulos = (NodeList) xPath.evaluate("/cursos/curs[@id='" + idCurs + "']", doc, XPathConstants.NODESET);
+
+            // Iterar sobre los elementos
+            for (int i = 0; i < nodeListModulos.getLength(); i++) {
+                Element cursElement = (Element) nodeListModulos.item(i);
+                NodeList modulsList = cursElement.getElementsByTagName("modul");
+
+                for (int j = 0; j < modulsList.getLength(); j++) {
+                    Element modulElement = (Element) modulsList.item(j);
+                    String moduloId = modulElement.getAttribute("id");
+                    String moduloTitol = modulElement.getElementsByTagName("titol").item(0).getTextContent();
+
+                    List<String> modulsInfo = new ArrayList<>();
+                    modulsInfo.add(moduloId);
+                    modulsInfo.add(moduloTitol);
+                    llistaCursos.add(modulsInfo);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return llistaCursos;
     }
 
     /**
@@ -180,9 +240,31 @@ public class PR132Main {
      * @return Llista amb els noms dels alumnes.
      */
     public List<String> llistarAlumnes(String idCurs) {
-        // *************** CODI PRÀCTICA **********************/
-        return null; // Substitueix pel teu
+        List<String> llistaAlumnes = new ArrayList<>();
+        try {
+            // Cargar el documento XML
+            Document doc = carregarDocumentXML(xmlFilePath);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+
+            // Obtener los elementos del curso especifico
+            NodeList nodeListCursos = (NodeList) xPath.evaluate("/cursos/curs[@id='" + idCurs + "']", doc, XPathConstants.NODESET);
+
+            for (int i = 0; i < nodeListCursos.getLength(); i++) {
+                Element cursElement = (Element) nodeListCursos.item(i);
+                NodeList alumnesList = cursElement.getElementsByTagName("alumne");
+
+                for (int j = 0; j < alumnesList.getLength(); j++) {
+                    Element alumneElement = (Element) alumnesList.item(j);
+                    String alumne = alumneElement.getTextContent();
+                    llistaAlumnes.add(alumne);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return llistaAlumnes;
     }
+
 
     /**
      * Imprimeix per consola la llista d'alumnes d'un curs.
@@ -201,7 +283,22 @@ public class PR132Main {
      * @param nomAlumne Nom de l'alumne a afegir.
      */
     public void afegirAlumne(String idCurs, String nomAlumne) {
-        // *************** CODI PRÀCTICA **********************/
+        try {
+            Document doc = carregarDocumentXML(xmlFilePath);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            Node cursNode = (Node) xPath.evaluate("/cursos/curs[@id='" + idCurs + "']", doc, XPathConstants.NODE);
+
+            if (cursNode != null) {
+                Element nouAlumne = doc.createElement("alumne");
+                nouAlumne.setTextContent(nomAlumne);
+                // esto es para poner el alumno en alumnes
+                Node alumnesNode = cursNode.getChildNodes().item(1);
+                alumnesNode.appendChild(nouAlumne);
+                guardarDocumentXML(doc);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -211,8 +308,33 @@ public class PR132Main {
      * @param nomAlumne Nom de l'alumne a eliminar.
      */
     public void eliminarAlumne(String idCurs, String nomAlumne) {
-        // *************** CODI PRÀCTICA **********************/
+        try {
+            Document doc = carregarDocumentXML(xmlFilePath);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            Node cursNode = (Node) xPath.evaluate("/cursos/curs[@id='" + idCurs + "']", doc, XPathConstants.NODE);
+            if (cursNode != null && cursNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element cursElement = (Element) cursNode;
+                Node alumnesNode = cursElement.getElementsByTagName("alumnes").item(0);
+                NodeList alumnesList = alumnesNode.getChildNodes();
+
+                for (int i = 0; i < alumnesList.getLength(); i++) {
+                    Node alumneNode = alumnesList.item(i);
+                    if (alumneNode.getNodeType() == Node.ELEMENT_NODE) {
+                        String alumneName = alumneNode.getTextContent().trim();
+                        if (alumneName.equals(nomAlumne)) {
+                            alumnesNode.removeChild(alumneNode);
+                            break;
+                        }
+                    }
+                }
+                guardarDocumentXML(doc);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
+
 
     /**
      * Carrega el document XML des de la ruta especificada.

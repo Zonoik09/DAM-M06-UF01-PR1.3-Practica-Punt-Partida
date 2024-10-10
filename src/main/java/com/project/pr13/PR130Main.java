@@ -53,10 +53,34 @@ public class PR130Main {
         Document doc = parseXML(inputFile);
         if (doc != null) {
             NodeList persones = doc.getElementsByTagName("persona");
-            // imprimirCapçaleres();
-            // imprimirDadesPersones(persones);
+            imprimirCapçaleres();
+            imprimirDadesPersones(persones);
         }
     }
+
+    // Imprime los datos de persones
+    private void imprimirDadesPersones(NodeList persones) {
+        for (int i = 0; i < persones.getLength(); i++) {
+            Element persona = (Element) persones.item(i);
+
+            // Aqui se obtiene los datos de cada elemento
+            String nom = persona.getElementsByTagName("nom").item(0).getTextContent();
+            String cognom = persona.getElementsByTagName("cognom").item(0).getTextContent();
+            String edat = persona.getElementsByTagName("edat").item(0).getTextContent();
+            String ciutat = persona.getElementsByTagName("ciutat").item(0).getTextContent();
+
+            System.out.printf("%-8s %-14s %-5s %-10s%n", nom, cognom, edat, ciutat);
+        }
+    }
+
+
+
+    // Imprime la cabecera
+    private void imprimirCapçaleres() {
+        System.out.printf("%-8s %-14s %-5s %-10s%n", "Nom", "Cognom", "Edat", "Ciutat");
+        System.out.printf("%-8s %-14s %-5s %-10s%n", "--------", "--------------", "-----", "---------");
+    }
+
 
     /**
      * Llegeix un fitxer XML i el converteix en un objecte Document.
@@ -65,7 +89,16 @@ public class PR130Main {
      * @return Document XML carregat o null si hi ha hagut un error en la lectura.
      */
     public static Document parseXML(File inputFile) {
-        // *************** CODI PRÀCTICA **********************/
-        return null; // Substitueix pel teu        
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(inputFile);
+            doc.getDocumentElement().normalize();
+            return doc;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null; // Si no devuelve el doc devuelve null
     }
+
 }
